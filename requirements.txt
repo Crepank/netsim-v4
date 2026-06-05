@@ -1,0 +1,6 @@
+Flask
+Werkzeug
+python-dotenv
+Pillow
+requests
+openai
