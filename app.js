@@ -80,6 +80,19 @@ const sidebarDesc = document.getElementById('sidebar-desc');
 const railVersionsBtn = document.getElementById('rail-versions-btn');
 const railProjectsBtn = document.getElementById('rail-projects-btn');
 const railSocialBtn = document.getElementById('rail-social-btn');
+const railNotificationsBtn = document.getElementById('rail-notifications-btn');
+const railLikesBtn = document.getElementById('rail-likes-btn');
+const railEditBtn = document.getElementById('rail-edit-btn');
+const railNewBtn = document.getElementById('rail-new-btn');
+const notifDot = document.getElementById('notif-dot');
+const notificationsPanel = document.getElementById('notificationsPanel');
+const closeNotificationsBtn = document.getElementById('closeNotificationsBtn');
+const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
+const mobileHomeBtn = document.getElementById('mobile-home-btn');
+const mobileVersionsBtn = document.getElementById('mobile-versions-btn');
+const mobileEditorBtn = document.getElementById('mobile-editor-btn');
+const mobileProjectsBtn = document.getElementById('mobile-projects-btn');
+const mobileSettingsBtn = document.getElementById('mobile-settings-btn');
 
 // Experimental Features refs
 const experimentalBtn = document.getElementById('experimentalBtn');
@@ -2959,8 +2972,37 @@ function showSettingsSection(sectionId) {
     }
 }
 
-function setInitialTheme() {
-    document.documentElement.classList.add('dark');
+// ============================
+// NOTIFICATIONS
+// ============================
+let notificationsOpen = false;
+
+function toggleNotificationsPanel() {
+    notificationsOpen = !notificationsOpen;
+    if (notificationsPanel) {
+        notificationsPanel.classList.toggle('hidden', !notificationsOpen);
+    }
+    if (notificationsOpen && notifDot) {
+        notifDot.classList.add('hidden');
+    }
+}
+
+function closeNotificationsPanel() {
+    notificationsOpen = false;
+    if (notificationsPanel) notificationsPanel.classList.add('hidden');
+}
+
+// ============================
+// MOBILE SIDEBAR
+// ============================
+function openMobileSidebar() {
+    if (sidebarRight) sidebarRight.classList.add('mobile-sidebar-open');
+    if (mobileSidebarOverlay) mobileSidebarOverlay.classList.add('active');
+}
+
+function closeMobileSidebar() {
+    if (sidebarRight) sidebarRight.classList.remove('mobile-sidebar-open');
+    if (mobileSidebarOverlay) mobileSidebarOverlay.classList.remove('active');
 }
 
 settingsBtn.addEventListener('click', openSettingsModal);
@@ -3001,6 +3043,88 @@ document.querySelectorAll('.settings-nav-btn').forEach(btn => {
         const section = btn.dataset.section;
         showSettingsSection(section);
     });
+});
+
+// Notifications (rail)
+railNotificationsBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleNotificationsPanel();
+});
+closeNotificationsBtn?.addEventListener('click', closeNotificationsPanel);
+document.addEventListener('click', (e) => {
+    if (notificationsOpen && notificationsPanel && !notificationsPanel.contains(e.target) && e.target !== railNotificationsBtn) {
+        closeNotificationsPanel();
+    }
+});
+
+// Rail: Liked Projects → switch to projects tab showing liked
+railLikesBtn?.addEventListener('click', () => {
+    if (sidebarPanel && sidebarPanel.classList.contains('is-closed')) toggleSidebar();
+    sidebarView = 'projects';
+    renderSidebarContent();
+});
+
+// Rail: Edit → open edit-project modal for current project
+railEditBtn?.addEventListener('click', () => {
+    if (!currentProjectId || !projects[currentProjectId]) {
+        // No project open – focus prompt input
+        const promptInput = document.getElementById('prompt-input');
+        if (promptInput) promptInput.focus();
+        return;
+    }
+    openEditProjectModal(currentProjectId);
+});
+
+// Rail: New Project
+railNewBtn?.addEventListener('click', () => {
+    const modal = document.getElementById('newProjectModal');
+    const content = document.getElementById('newProjectModalContent');
+    if (!modal || !content) { newProjectBtn?.click(); return; }
+    modal.classList.remove('pointer-events-none', 'opacity-0');
+    requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95', 'opacity-0');
+    });
+});
+
+// Mobile bottom bar
+mobileSidebarOverlay?.addEventListener('click', closeMobileSidebar);
+
+mobileHomeBtn?.addEventListener('click', () => {
+    closeMobileSidebar();
+    document.querySelectorAll('.mobile-bar-btn').forEach(b => b.classList.remove('active'));
+    mobileHomeBtn.classList.add('active');
+});
+
+mobileVersionsBtn?.addEventListener('click', () => {
+    openMobileSidebar();
+    sidebarView = 'versions';
+    renderSidebarContent();
+    document.querySelectorAll('.mobile-bar-btn').forEach(b => b.classList.remove('active'));
+    mobileVersionsBtn.classList.add('active');
+});
+
+mobileEditorBtn?.addEventListener('click', () => {
+    closeMobileSidebar();
+    const promptInput = document.getElementById('prompt-input');
+    if (promptInput) promptInput.focus();
+    document.querySelectorAll('.mobile-bar-btn').forEach(b => b.classList.remove('active'));
+    mobileEditorBtn.classList.add('active');
+});
+
+mobileProjectsBtn?.addEventListener('click', () => {
+    openMobileSidebar();
+    sidebarView = 'projects';
+    renderSidebarContent();
+    document.querySelectorAll('.mobile-bar-btn').forEach(b => b.classList.remove('active'));
+    mobileProjectsBtn.classList.add('active');
+});
+
+mobileSettingsBtn?.addEventListener('click', () => {
+    closeMobileSidebar();
+    openSettingsModal();
+    document.querySelectorAll('.mobile-bar-btn').forEach(b => b.classList.remove('active'));
+    mobileSettingsBtn.classList.add('active');
 });
 
 
@@ -4205,7 +4329,6 @@ const openrouterApiKeyInputEl = document.getElementById('openrouterApiKeyInput')
 
 // Initial
 async function initialize() {
-    setInitialTheme();
     loadProjectsFromLocalStorage();
 
     // Load user preferences
