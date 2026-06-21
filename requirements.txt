@@ -4,3 +4,10 @@ python-dotenv
 Pillow
 requests
 openai
+Flask
+gunicorn
+openai
+Pillow
+python-dotenv
+requests
+Werkzeug
