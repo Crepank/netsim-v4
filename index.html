@@ -34,7 +34,6 @@
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script>
       tailwind.config = {
-        darkMode: ['class', '[data-theme="dark"]'],
         theme: {
           extend: {
             fontFamily: {
@@ -112,7 +111,7 @@
         padding-right: 12px;
         background: #1c1c1f;
         border: 1px solid #3f3f46;
-        border-radius: 9999px;
+        border-radius: 8px;
         font-size: 13px;
         color: #e4e4e7;
         outline: none;
@@ -128,7 +127,7 @@
       #nav-create-btn {
         height: 32px;
         padding: 0 14px;
-        border-radius: 9999px;
+        border-radius: 8px;
         background: #2563eb;
         color: #fff;
         font-size: 13px;
@@ -146,7 +145,7 @@
       #nav-login-btn {
         height: 32px;
         padding: 0 14px;
-        border-radius: 9999px;
+        border-radius: 8px;
         background: transparent;
         border: 1px solid #52525b;
         color: #d4d4d8;
@@ -180,7 +179,7 @@
         align-items: center;
         gap: 5px;
         padding: 5px 12px;
-        border-radius: 9999px;
+        border-radius: 8px;
         font-size: 12px;
         font-weight: 500;
         white-space: nowrap;
@@ -415,6 +414,87 @@
         padding: 1px 6px; border-radius: 4px; margin-left: 6px;
         line-height: 1.6; vertical-align: middle; display: inline-block;
       }
+
+      /* ===================== */
+      /* NOTIFICATION DOT      */
+      /* ===================== */
+      .notif-dot {
+        position: absolute; top: 6px; right: 6px;
+        width: 7px; height: 7px; border-radius: 9999px;
+        background: #3b82f6; border: 1.5px solid #18181b;
+      }
+      .notif-dot.hidden { display: none; }
+
+      /* ===================== */
+      /* RAIL ACTIVE STATE     */
+      /* ===================== */
+      .rail-btn {
+        position: relative; display: flex; align-items: center;
+        justify-content: center; width: 36px; height: 36px;
+        border-radius: 8px; color: #71717a; transition: all 0.15s;
+        cursor: pointer; background: transparent; border: none;
+      }
+      .rail-btn:hover { color: #e4e4e7; background: #27272a; }
+      .rail-btn.active { color: #fff; background: #2563eb; }
+      .rail-btn.active:hover { background: #3b82f6; }
+
+      /* ===================== */
+      /* BLOG LINK             */
+      /* ===================== */
+      #nav-blog-link {
+        font-size: 13px; font-weight: 500; color: #a1a1aa;
+        text-decoration: none; white-space: nowrap;
+        transition: color 0.15s; padding: 0 4px;
+      }
+      #nav-blog-link:hover { color: #e4e4e7; }
+
+      /* ===================== */
+      /* RESPONSIVE LAYOUT     */
+      /* ===================== */
+      @media (max-width: 640px) {
+        #right-sidebar { display: none !important; }
+        #right-sidebar.mobile-sidebar-open {
+          display: flex !important;
+          position: fixed; right: 0; top: 52px; bottom: 0;
+          z-index: 45; box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+        }
+        #tag-filter-bar { gap: 4px; padding: 6px 10px; }
+        .tag-filter-btn { padding: 4px 9px; font-size: 11px; }
+        #top-navbar { padding: 0 10px; gap: 8px; }
+      }
+
+      @media (min-width: 641px) and (max-width: 1024px) {
+        #sidebar-panel { width: 17rem !important; }
+      }
+
+      @media (min-width: 1280px) {
+        #sidebar-panel { width: 22rem; }
+      }
+
+      /* Mobile overlay */
+      #mobile-sidebar-overlay {
+        display: none; position: fixed; inset: 0; top: 52px;
+        background: rgba(0,0,0,0.5); z-index: 44;
+      }
+      @media (max-width: 640px) {
+        #mobile-sidebar-overlay.active { display: block; }
+        #mobile-bar { display: flex; }
+      }
+
+      /* Mobile bottom bar */
+      #mobile-bar {
+        display: none; position: fixed; bottom: 0; left: 0; right: 0;
+        height: 52px; background: #111113; border-top: 1px solid #27272a;
+        z-index: 43; align-items: center; justify-content: space-around;
+        padding: 0 8px;
+      }
+      .mobile-bar-btn {
+        display: flex; flex-direction: column; align-items: center;
+        gap: 2px; color: #71717a; font-size: 9px; font-weight: 500;
+        cursor: pointer; padding: 4px 8px; border-radius: 6px;
+        border: none; background: transparent; transition: color 0.15s;
+      }
+      .mobile-bar-btn:hover, .mobile-bar-btn.active { color: #e4e4e7; }
     </style>
   </head>
 
@@ -440,10 +520,8 @@
 
       <!-- Right actions -->
       <div class="flex items-center gap-2 shrink-0 ml-auto">
-        <!-- Social icon: Discord -->
-        <a href="https://netsim.us.to/discord" target="_blank" title="Discord" class="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:text-indigo-400 hover:bg-zinc-800 transition-colors">
-          <i data-lucide="message-circle" class="h-4 w-4"></i>
-        </a>
+        <!-- Blog link -->
+        <a id="nav-blog-link" href="/blog" class="hidden sm:block">Blog</a>
 
         <!-- Separator -->
         <div class="hidden sm:block h-5 w-px bg-zinc-800 mx-1"></div>
@@ -459,7 +537,7 @@
 
         <!-- Logged-in auth area -->
         <div id="nav-logged-in" class="hidden items-center gap-2">
-          <button id="nav-new-project-btn" class="h-8 px-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
+          <button id="nav-new-project-btn" class="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Create
           </button>
@@ -779,34 +857,64 @@
           </div>
 
           <!-- Rail (Fixed vertical strip) -->
-          <div class="w-12 flex flex-col items-center py-3 bg-zinc-900 z-30 gap-3 shrink-0">
+          <div class="w-12 flex flex-col items-center py-2 bg-zinc-900 border-l border-zinc-800/40 z-30 gap-1 shrink-0">
+            <!-- netsim Logo -->
+            <div class="h-9 flex items-center justify-center mb-1 shrink-0">
+              <span class="text-[18px] font-bold leading-none" style="letter-spacing:-0.02em">
+                <span class="netsim-logo-n">n</span>
+              </span>
+            </div>
+
             <!-- Toggle Panel -->
-            <button id="sidebar-toggle-btn" class="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-md transition-colors">
-              <i data-lucide="panel-right" class="h-5 w-5"></i>
+            <button id="sidebar-toggle-btn" class="rail-btn" title="Toggle Panel">
+              <i data-lucide="panel-right" class="h-4.5 w-4.5"></i>
             </button>
 
-            <div class="flex-1"></div>
+            <div class="flex-1 min-h-2"></div>
 
-            <!-- Rail Shortcuts -->
-            <button id="rail-versions-btn" class="p-2 text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 rounded-md transition-colors relative group" title="Versions">
-              <i data-lucide="history" class="h-5 w-5"></i>
-            </button>
-            <button id="rail-projects-btn" class="p-2 text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 rounded-md transition-colors relative group" title="Projects">
-              <i data-lucide="folder" class="h-5 w-5"></i>
-            </button>
-            <button id="rail-social-btn" class="p-2 text-zinc-400 hover:text-blue-400 hover:bg-zinc-800 rounded-md transition-colors relative group" title="Social">
-              <i data-lucide="message-square" class="h-5 w-5"></i>
+            <!-- Notifications -->
+            <button id="rail-notifications-btn" class="rail-btn" title="Notifications">
+              <i data-lucide="bell" class="h-4.5 w-4.5"></i>
+              <span class="notif-dot hidden" id="notif-dot"></span>
             </button>
 
-            <div class="h-px w-6 bg-zinc-800 my-1"></div>
+            <!-- Liked Projects -->
+            <button id="rail-likes-btn" class="rail-btn" title="Liked Projects">
+              <i data-lucide="heart" class="h-4.5 w-4.5"></i>
+            </button>
 
-            <!-- Discord link -->
-            <a href="https://netsim.us.to/discord" target="_blank" class="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-zinc-800 rounded-md transition-colors" title="Discord">
-              <i data-lucide="message-circle" class="h-5 w-5"></i>
+            <!-- Projects -->
+            <button id="rail-projects-btn" class="rail-btn" title="Projects">
+              <i data-lucide="folder" class="h-4.5 w-4.5"></i>
+            </button>
+
+            <!-- Edit / Pencil -->
+            <button id="rail-edit-btn" class="rail-btn" title="Edit Project">
+              <i data-lucide="pencil" class="h-4.5 w-4.5"></i>
+            </button>
+
+            <!-- New Project -->
+            <button id="rail-new-btn" class="rail-btn" title="New Project">
+              <i data-lucide="plus" class="h-4.5 w-4.5"></i>
+            </button>
+
+            <div class="h-px w-6 bg-zinc-800 my-1 shrink-0"></div>
+
+            <!-- Versions -->
+            <button id="rail-versions-btn" class="rail-btn" title="Versions">
+              <i data-lucide="history" class="h-4.5 w-4.5"></i>
+            </button>
+
+            <!-- Social -->
+            <button id="rail-social-btn" class="rail-btn" title="Social">
+              <i data-lucide="message-square" class="h-4.5 w-4.5"></i>
+            </button>
+
+            <!-- Discord -->
+            <a href="https://netsim.us.to/discord" target="_blank" class="rail-btn" title="Discord">
+              <i data-lucide="message-circle" class="h-4.5 w-4.5"></i>
             </a>
-
-            <!-- Rail bottom spacer -->
-            <div class="h-2"></div>
+            <div class="h-2 shrink-0"></div>
           </div>
         </aside>
       </section>
@@ -934,6 +1042,9 @@
             <button data-section="data" class="settings-nav-btn w-full flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm text-zinc-300 hover:bg-zinc-800 transition">
               <i data-lucide="database" class="h-4 w-4"></i><span>Data</span>
             </button>
+            <button data-section="appearance" class="settings-nav-btn w-full flex items-center gap-3 px-2.5 py-1.5 rounded-md text-sm text-zinc-300 hover:bg-zinc-800 transition">
+              <i data-lucide="palette" class="h-4 w-4"></i><span>Appearance</span>
+            </button>
           </nav>
           <div class="flex-1 p-6 overflow-y-auto thin-scroll">
             <div id="settings-section-profile" class="settings-section">
@@ -996,6 +1107,7 @@
                 <div>
               </div>
             </div>
+          </div><!-- /settings-section-profile -->
             <div id="settings-section-homepage" class="settings-section hidden">
               <h3 class="text-base font-semibold text-zinc-200 mb-3 flex items-center gap-2">
                 <i data-lucide="home" class="h-4 w-4"></i><span>Homepage</span>
@@ -1020,7 +1132,6 @@
               <div class="space-y-4">
                 <div>
                   <label for="customInstructionsInput" class="text-sm text-zinc-300 mb-1.5 block font-medium">Custom Instructions</label>
-                  <textarea id="customInstructionsInput" rows="8" class="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition placeholder:text-zinc-600" placeholder="e.g., Always use modern ES6 syntax. Prefer dark themes with neon accents. Be concise in your code."></textarea>
                   <p class="text-xs text-zinc-500 mt-2 leading-relaxed">These instructions will be prepended to every request you make to the AI.</p>
                 </div>
               </div>
@@ -1081,6 +1192,55 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- NOTIFICATIONS PANEL                                                -->
+    <!-- ================================================================ -->
+    <div id="notificationsPanel" class="fixed right-12 top-12 w-72 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl z-50 hidden overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+        <h3 class="text-sm font-semibold text-zinc-100">Notifications</h3>
+        <button id="closeNotificationsBtn" class="h-6 w-6 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors">
+          <i data-lucide="x" class="h-3.5 w-3.5"></i>
+        </button>
+      </div>
+      <div id="notifications-list" class="max-h-80 overflow-y-auto thin-scroll">
+        <div class="flex flex-col items-center justify-center py-10 gap-2 text-zinc-600">
+          <i data-lucide="bell" class="h-8 w-8 opacity-30"></i>
+          <p class="text-xs">No notifications yet</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- MOBILE SIDEBAR OVERLAY                                             -->
+    <!-- ================================================================ -->
+    <div id="mobile-sidebar-overlay"></div>
+
+    <!-- ================================================================ -->
+    <!-- MOBILE BOTTOM BAR                                                  -->
+    <!-- ================================================================ -->
+    <div id="mobile-bar">
+      <button class="mobile-bar-btn" id="mobile-home-btn">
+        <i data-lucide="home" class="h-5 w-5"></i>
+        <span>Home</span>
+      </button>
+      <button class="mobile-bar-btn" id="mobile-versions-btn">
+        <i data-lucide="history" class="h-5 w-5"></i>
+        <span>Versions</span>
+      </button>
+      <button class="mobile-bar-btn active" id="mobile-editor-btn">
+        <i data-lucide="pencil" class="h-5 w-5"></i>
+        <span>Editor</span>
+      </button>
+      <button class="mobile-bar-btn" id="mobile-projects-btn">
+        <i data-lucide="folder" class="h-5 w-5"></i>
+        <span>Projects</span>
+      </button>
+      <button class="mobile-bar-btn" id="mobile-settings-btn">
+        <i data-lucide="settings" class="h-5 w-5"></i>
+        <span>Settings</span>
+      </button>
     </div>
 
     <!-- ================================================================ -->
