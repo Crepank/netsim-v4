@@ -47,7 +47,7 @@ You are a software agent with access to filesystem tools. Your goal is to build 
 - `style.css`: Custom styles.
 - `script.js`: Main logic.
 
-For external AI features in the *user's* app: `https://gen.pollinations.ai/v1/chat/completions` (model: 'openai').
+For external AI features in the *user's* app: use `https://openrouter.ai/api/v1/chat/completions` with the user's OpenRouter API key.
 """
 
 AI_TOOLS = [
@@ -1062,7 +1062,7 @@ def get_public_projects_list():
     # Fetch recent projects (published or not). We join with users to get the username and a subquery for likes.
     # This endpoint now returns all projects regardless of pinnedVersionId so the homepage shows every project.
     rows = query_db('''
-        SELECT p.id as db_id, p.project_data, u.username,
+        SELECT p.id as db_id, p.project_data, u.username, u.avatar_url,
                (SELECT COUNT(*) FROM likes WHERE project_db_id = p.id) as likes_count
         FROM projects p
         JOIN users u ON p.user_id = u.id
@@ -1089,13 +1089,30 @@ def get_public_projects_list():
             description = project.get('description') or project.get('currentDescription') or 'No description available.'
             thumbnail_url = f"https://netsim-img.ext.io/@{row['username']}/{slug}"
 
+            # Derive creation timestamp from oldest version ID (format: v_<timestamp_ms>)
+            created_at_ms = None
+            versions = project.get('versions', {})
+            if versions:
+                ts_list = []
+                for vid in versions.keys():
+                    if vid.startswith('v_'):
+                        try:
+                            ts_list.append(int(vid.split('_')[1]))
+                        except (ValueError, IndexError):
+                            pass
+                if ts_list:
+                    created_at_ms = min(ts_list)
+
             public_projects.append({
                 'username': row['username'],
+                'avatar_url': row['avatar_url'] or '/default.webp',
                 'title': title,
                 'slug': slug,
                 'description': description,
                 'likes': row['likes_count'] or 0,
-                'thumbnail_url': thumbnail_url
+                'thumbnail_url': thumbnail_url,
+                'views': project.get('views', 0),
+                'created_at_ms': created_at_ms,
             })
         except (json.JSONDecodeError, KeyError):
             # Skip malformed project rows
@@ -1278,66 +1295,56 @@ def generate_site():
     client_api_key = data.get('apiKey')
     client_api_base = data.get('apiBase')
 
-    # Prioritize environment variable if client key is not set, or use dummy if using pollinations default
+    # Prioritize environment variable if client key is not set
     api_key = client_api_key if client_api_key else os.environ.get('AI_API_KEY')
-    # Use gen.pollinations.ai/v1 as requested by user
-    api_base = client_api_base if client_api_base else os.environ.get('AI_API_BASE', 'https://gen.pollinations.ai/v1')
+    # Use OpenRouter as default provider
+    api_base = client_api_base if client_api_base else os.environ.get('AI_API_BASE', 'https://openrouter.ai/api/v1')
     
     # Clean base URL
     api_base = api_base.rstrip('/')
     
     # If no key is provided and we are using a custom endpoint, OpenAI lib requires *something*.
-    # If using official OpenAI, it will fail if invalid. If using Pollinations/LocalAI, 'dummy' is often fine.
+    # If no key is provided, use 'dummy' — OpenRouter will return a 401 which the UI will surface.
     if not api_key:
         api_key = "dummy"
 
-    # Model Mapping
-    # Map the UI display names to actual provider model ids (use provider ids from the list)
+    # Model Mapping — OpenRouter model IDs
     model_map = {
         # OpenAI
-        'GPT-5 Nano': 'openai-fast',
-        'GPT-5 Mini': 'openai',
-        'GPT-5.2': 'openai-large',
-        'GPT-5.2 Pro': 'openai-large',
-        
-        # Claude
-        'Claude Haiku 4.5': 'claude-fast',
-        'Claude Sonnet 4.5': 'claude',
-        'Claude Opus 4.6': 'claude-large',
-        
+        'GPT-5 Nano': 'openai/gpt-4o-mini',
+        'GPT-5 Mini': 'openai/gpt-4o',
+        'GPT-5.2': 'openai/gpt-4-turbo',
+        'GPT-5.2 Pro': 'openai/gpt-4-turbo',
+
+        # Anthropic
+        'Claude Haiku 4.5': 'anthropic/claude-3-haiku',
+        'Claude Sonnet 4.5': 'anthropic/claude-sonnet-4-5',
+        'Claude Opus 4.6': 'anthropic/claude-3-opus',
+
         # Google
-        'Gemini 2.5 Flash Lite': 'gemini-fast',
-        'Gemini 3 Flash': 'gemini',
-        'Gemini 3 Pro': 'gemini-large',
-        'Gemini 2.5 Pro': 'gemini-legacy',
-        
-        # Specialized / Open Source and others
-        'DeepSeek V3.2': 'deepseek',
-        'Qwen3 Coder 30B': 'qwen-coder',
-        'Mistral Small 3.2': 'mistral',
-        'Grok 4 Fast': 'grok',
-        'Perplexity Sonar': 'perplexity-fast',
-        'Perplexity Sonar Reasoning': 'perplexity-reasoning',
-        'Amazon Nova Micro': 'nova-fast',
-        'GLM-5': 'glm',
-        'MiniMax M2.1': 'minimax',
-        'Kimi K2.5': 'kimi',
-        'Moonshot Kimi K2.5': 'kimi',
-        'OpenAI GPT-5.2': 'openai-large'
+        'Gemini 2.5 Flash Lite': 'google/gemini-flash-1.5-8b',
+        'Gemini 3 Flash': 'google/gemini-flash-1.5',
+        'Gemini 3 Pro': 'google/gemini-pro-1.5',
+        'Gemini 2.5 Pro': 'google/gemini-2.5-pro-preview',
+
+        # Specialized / Open Source
+        'DeepSeek V3.2': 'deepseek/deepseek-chat',
+        'Qwen3 Coder 30B': 'qwen/qwen-2.5-coder-32b-instruct',
+        'Mistral Small 3.2': 'mistralai/mistral-small',
+        'Grok 4 Fast': 'x-ai/grok-beta',
+        'Kimi K2.5': 'moonshotai/moonshot-v1-8k',
+        'MiniMax M2.1': 'minimax/minimax-01',
+        'Amazon Nova Micro': 'amazon/nova-micro-v1',
+        'GLM-5': 'zhipuai/glm-4',
     }
-    
+
     # Determine the model ID to send to the API
-    # 1. Try to map from the UI name/ID (model_name) to the backend ID using model_map.
-    # 2. If not found in map, use the model_name directly (fallback).
-    # 3. If using pollinations, some IDs map cleanly, otherwise they default to 'openai'.
-    
     api_model = model_map.get(model_name, model_name)
 
-    # For other endpoints (not Pollinations), check ENV override first
-    if "pollinations" not in api_base.lower():
-        env_model = os.environ.get('AI_MODEL')
-        if env_model:
-            api_model = env_model
+    # Allow ENV override for self-hosted deployments
+    env_model = os.environ.get('AI_MODEL')
+    if env_model:
+        api_model = env_model
 
     # Get user custom instructions
     user_settings = query_db('SELECT custom_instructions FROM users WHERE id = ?', [user_id], one=True)
@@ -1610,14 +1617,21 @@ def get_public_project(username, slug):
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 404
 
-    project_row = query_db('SELECT project_data FROM projects WHERE user_id = ? AND slug = ?', [user['id'], slug], one=True)
+    project_row = query_db('SELECT id, project_data FROM projects WHERE user_id = ? AND slug = ?', [user['id'], slug], one=True)
     if not project_row:
         return jsonify({'success': False, 'message': 'Project not found'}), 404
 
     try:
         project_data = json.loads(project_row['project_data'])
-        # Return a sanitized version of the project data
-        # For now, we return the whole blob, but in future you might want to strip sensitive info
+        # Increment view counter
+        project_data['views'] = project_data.get('views', 0) + 1
+        try:
+            db = get_db()
+            db.execute('UPDATE projects SET project_data = ? WHERE id = ?',
+                       (json.dumps(project_data), project_row['id']))
+            db.commit()
+        except Exception:
+            pass  # Don't fail the request if view tracking fails
         return jsonify({'success': True, 'project': project_data})
     except json.JSONDecodeError:
         return jsonify({'success': False, 'message': 'Error parsing project data'}), 500
@@ -3024,4 +3038,4 @@ def init_db_command():
 if __name__ == '__main__':
     init_db_command()
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=6514, use_reloader=False)
+    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
