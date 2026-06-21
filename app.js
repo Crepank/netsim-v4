@@ -293,19 +293,31 @@ function updateLoggedInUI(username, avatarUrl) {
 
     settingsLoggedOutView.classList.add('hidden');
     settingsLoggedInView.classList.remove('hidden');
+
+    // Update top navbar auth state
+    const navLoggedOut = document.getElementById('nav-logged-out');
+    const navLoggedIn = document.getElementById('nav-logged-in');
+    if (navLoggedOut) navLoggedOut.classList.add('hidden');
+    if (navLoggedIn) { navLoggedIn.classList.remove('hidden'); navLoggedIn.style.display = 'flex'; }
+
     renderProjectState(); 
 }
 
 function updateLoggedOutUI() {
     isLoggedIn = false;
     discordUsername = 'guest';
-    // Removed usernameDisplay update
     settingsUsernameDisplay.textContent = 'guest';
     sidebarAvatar.src = '/default.webp';
     
     settingsLoggedOutView.classList.remove('hidden');
     settingsLoggedInView.classList.add('hidden');
-    
+
+    // Update top navbar auth state
+    const navLoggedOut = document.getElementById('nav-logged-out');
+    const navLoggedIn = document.getElementById('nav-logged-in');
+    if (navLoggedOut) navLoggedOut.classList.remove('hidden');
+    if (navLoggedIn) navLoggedIn.classList.add('hidden');
+
     loadProjectsFromLocalStorage();
     renderProjectState();
 }
@@ -445,126 +457,109 @@ function showIframeLoadingAnimation() {
     previewFrame.srcdoc = loadingHtml;
 }
 
-  // Model config (added info + pollen requirement for per-model tooltip)
+  // Model config
 const modelConfig = {
     'GPT-5 Nano': {
-        apiName: 'openai-fast',
+        apiName: 'openai/gpt-4o-mini',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/openai.png',
         supportsVision: true,
-        requiresPollen: false,
-        info: 'Ultra-fast OpenAI variant optimized for short, low-latency requests — ideal for UI interactions and quick iterations.'
+        info: 'Ultra-fast OpenAI model optimized for low-latency requests — ideal for quick iterations.'
     },
     'GPT-5 Mini': {
-        apiName: 'openai',
+        apiName: 'openai/gpt-4o',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/openai.png',
         supportsVision: true,
-        requiresPollen: false,
-        info: 'Balanced general-purpose model offering a good mix of speed, cost, and capability for most app tasks.'
+        info: 'Balanced general-purpose OpenAI model with strong reasoning and vision capabilities.'
     },
     'GPT-5.2': {
-        apiName: 'openai-large',
+        apiName: 'openai/gpt-4-turbo',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/openai.png',
         supportsVision: true,
-        requiresPollen: false,
-        info: 'Higher-capacity OpenAI model for complex reasoning, multi-step outputs, and larger-context tasks.'
+        info: 'Higher-capacity OpenAI model for complex reasoning, multi-step outputs, and larger contexts.'
     },
     'Claude Haiku 4.5': {
-        apiName: 'claude-fast',
+        apiName: 'anthropic/claude-3-haiku',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/claude-color.png',
         supportsVision: true,
-        requiresPollen: false,
-        info: 'Lightweight Anthropic Claude tuned for creative writing and safe, succinct responses with good speed.'
+        info: 'Lightweight Claude tuned for creative writing and succinct responses with good speed.'
     },
     'Claude Sonnet 4.5': {
-        apiName: 'claude',
+        apiName: 'anthropic/claude-sonnet-4-5',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/claude-color.png',
         supportsVision: true,
-        requiresPollen: true,
-        info: 'Reliable Claude model for longer-form content and nuanced reasoning; often used for thoughtful, safety-conscious outputs.'
+        info: 'Reliable Claude model for longer-form content and nuanced reasoning.'
     },
     'Claude Opus 4.6': {
-        apiName: 'claude-large',
+        apiName: 'anthropic/claude-3-opus',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/claude-color.png',
         supportsVision: true,
-        requiresPollen: true,
-        info: 'High-capacity Claude for advanced reasoning, multi-step planning, and high-quality text generation.'
+        info: 'High-capacity Claude for advanced reasoning, multi-step planning, and quality outputs.'
     },
     'Gemini 2.5 Flash Lite': {
-        apiName: 'gemini-fast',
+        apiName: 'google/gemini-flash-1.5-8b',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/google-color.png',
         supportsVision: true,
-        requiresPollen: false,
-        info: 'Fast, cost-conscious Gemini variant suitable for many multimodal and conversational use cases.'
+        info: 'Fast, cost-efficient Gemini variant for multimodal and conversational tasks.'
     },
     'Gemini 3 Flash': {
-        apiName: 'gemini',
+        apiName: 'google/gemini-flash-1.5',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/google-color.png',
         supportsVision: true,
-        requiresPollen: true,
-        info: 'Versatile Gemini model for multimodal tasks and richer reasoning when you need stronger capabilities.'
+        info: 'Versatile Gemini model for multimodal tasks and richer reasoning.'
     },
     'Gemini 3 Pro': {
-        apiName: 'gemini-large',
+        apiName: 'google/gemini-pro-1.5',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/google-color.png',
         supportsVision: true,
-        requiresPollen: true,
-        info: 'Top-tier Gemini for the highest-quality multimodal reasoning, long contexts, and demanding tasks.'
+        info: 'Top-tier Gemini for highest-quality multimodal reasoning and long contexts.'
     },
     'DeepSeek V3.2': {
-        apiName: 'deepseek',
+        apiName: 'deepseek/deepseek-chat',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/deepseek-color.png',
         supportsVision: false,
-        requiresPollen: false,
-        info: 'Search-specialized model optimized for semantic retrieval and high-precision embeddings.'
+        info: 'Strong open-weight model optimized for code and reasoning tasks.'
     },
     'Qwen3 Coder 30B': {
-        apiName: 'qwen-coder',
+        apiName: 'qwen/qwen-2.5-coder-32b-instruct',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/qwen-color.png',
         supportsVision: false,
-        requiresPollen: false,
-        info: 'Large code-focused model tailored for programming tasks, code reasoning, and developer workflows.'
+        info: 'Large code-focused model tailored for programming tasks and developer workflows.'
     },
     'Mistral Small 3.2': {
-        apiName: 'mistral',
+        apiName: 'mistralai/mistral-small',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/mistral-color.png',
         supportsVision: false,
-        requiresPollen: false,
-        info: 'Lightweight open-source model with good throughput — great for cost-sensitive or offline deployments.'
+        info: 'Lightweight open-source model with good throughput for cost-sensitive deployments.'
     },
     'Grok 4 Fast': {
-        apiName: 'grok',
+        apiName: 'x-ai/grok-beta',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/grok.png',
         supportsVision: false,
-        requiresPollen: true,
-        info: 'xAI Grok tuned for fast conversational flows and chat-style interactions; good for lively dialogue and quick replies.'
+        info: 'xAI Grok tuned for fast conversational flows and lively dialogue.'
     },
     'Kimi K2.5': {
-        apiName: 'kimi',
+        apiName: 'moonshotai/moonshot-v1-8k',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/moonshot.png',
         supportsVision: true,
-        requiresPollen: false,
-        info: 'Kimi K2.5 — a compact multimodal model useful for image-aware prompts and efficient inference without purchased pollen.'
+        info: 'Kimi K2.5 — compact multimodal model useful for image-aware prompts.'
     },
     'MiniMax M2.1': {
-        apiName: 'minimax',
+        apiName: 'minimax/minimax-01',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/minimax-color.png',
         supportsVision: false,
-        requiresPollen: false,
-        info: 'Compact reasoning model focused on concise, high-quality outputs in constrained environments.'
+        info: 'Compact reasoning model focused on concise, high-quality outputs.'
     },
     'Amazon Nova Micro': {
-        apiName: 'nova-fast',
+        apiName: 'amazon/nova-micro-v1',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/aws-color.png',
         supportsVision: false,
-        requiresPollen: false,
-        info: 'Lightweight Amazon model optimized for low-latency and cost-effective inference.'
+        info: 'Lightweight Amazon model optimized for low-latency cost-effective inference.'
     },
     'GLM-5': {
-        apiName: 'glm',
+        apiName: 'zhipuai/glm-4',
         icon: 'https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/zhipu-color.png',
         supportsVision: false,
-        requiresPollen: false,
-        info: 'Multilingual GLM suited for translation, cross-lingual tasks, and international content.'
+        info: 'Multilingual GLM suited for translation and cross-lingual content tasks.'
     }
 };
 let selectedModel = 'GPT-5 Nano';
@@ -1231,6 +1226,8 @@ function updateTabUI() {
     });
 }
 
+// 
+
 function renderProjectsList() {
     if (!sidebarContent) return;
     
@@ -1516,7 +1513,7 @@ function renderFilesList() {
                     }
                 }, 60);
             }
-        });
+        })
 
         sidebarContent.addEventListener('drop', async (e) => {
             hideOverlay();
@@ -1784,6 +1781,11 @@ function renderFileEditor(path, content) {
         }
     });
 
+    // Image Generation Handler (new)
+    if (isImage)
+        header.querySelector('#file-editor-generate').addEventListener('click', async () =>
+            showImageGenerationModal(path, content));
+
     // Rename handler: open the rename modal (file rename uses fileRenameTarget)
     header.querySelector('#file-editor-rename').addEventListener('click', async () => {
         if (!currentProjectId || !projects[currentProjectId]) {
@@ -1879,6 +1881,71 @@ function mentionify(text) {
     return escaped;
 }
 
+// Color palette for project card thumbnails (image-2 style)
+const CARD_COLORS = [
+    '#1db954', '#7c3aed', '#f59e0b', '#3b82f6',
+    '#ec4899', '#14b8a6', '#ef4444', '#8b5cf6',
+    '#06b6d4', '#f97316', '#84cc16', '#a855f7'
+];
+function projectCardColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    return CARD_COLORS[Math.abs(hash) % CARD_COLORS.length];
+}
+
+// Fetch and render the home feed grid
+async function loadHomeFeed() {
+    const loading = document.getElementById('home-feed-loading');
+    const grid = document.getElementById('home-feed-grid');
+    const empty = document.getElementById('home-feed-empty');
+    if (!grid) return;
+    if (loading) loading.classList.remove('hidden');
+    if (grid) grid.classList.add('hidden');
+    if (empty) empty.classList.add('hidden');
+
+    try {
+        const data = await apiRequest('/projects/public');
+        if (loading) loading.classList.add('hidden');
+        const projects = data.projects || [];
+        if (!projects.length) {
+            if (empty) empty.classList.remove('hidden');
+            lucide.createIcons();
+            return;
+        }
+        grid.innerHTML = '';
+        projects.forEach(p => {
+            const color = projectCardColor((p.slug || '') + (p.username || ''));
+            const titleDisplay = p.title || p.slug || 'Untitled';
+            const card = document.createElement('div');
+            card.className = 'group cursor-pointer flex flex-col';
+            card.innerHTML = `
+                <div class="rounded-lg overflow-hidden mb-2 aspect-video flex items-center justify-center relative"
+                     style="background:${color};">
+                    <span class="text-white font-bold text-xl sm:text-2xl text-center px-3 leading-tight drop-shadow-sm select-none">${escapeHtml(titleDisplay)}</span>
+                </div>
+                <div class="px-0.5">
+                    <p class="text-sm font-medium text-zinc-100 truncate group-hover:text-white transition-colors">${escapeHtml(titleDisplay)}</p>
+                    <div class="flex items-center gap-2 mt-1 text-[11px] text-zinc-500">
+                        <span class="truncate">${escapeHtml(p.username || 'guest')}</span>
+                        ${p.created_at ? `<span>·</span><span>${formatTimeAgo(new Date(p.created_at))}</span>` : ''}
+                        ${p.likes != null ? `<span>·</span><span>♡ ${p.likes}</span>` : ''}
+                    </div>
+                </div>
+            `;
+            card.addEventListener('click', () => {
+                navigateTo(`/@${p.username}/${p.slug}`);
+            });
+            grid.appendChild(card);
+        });
+        grid.classList.remove('hidden');
+        lucide.createIcons();
+    } catch (e) {
+        if (loading) loading.classList.add('hidden');
+        if (empty) empty.classList.remove('hidden');
+        lucide.createIcons();
+    }
+}
+
 function renderVersionsList() {
     if (!sidebarContent) return;
     sidebarContent.innerHTML = '';
@@ -1894,73 +1961,84 @@ function renderVersionsList() {
     const totalVersions = sortedVersions.length;
 
     const list = document.createElement('div');
-    list.className = 'space-y-2';
+    list.className = 'space-y-1.5';
 
     sortedVersions.forEach((version, index) => {
         const versionNumber = totalVersions - index;
         const isActive = project.currentVersionId === version.id;
         const isPinned = project.pinnedVersionId === version.id;
-        
+
         const card = document.createElement('div');
-        // Dark card styling from image
-        card.className = `group relative p-3 rounded-lg border transition-all ${isActive ? 'bg-zinc-900 border-zinc-700' : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/50'}`;
-        
-        // Version Tag (Blue)
-        const versionTag = `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400">v${versionNumber}</span>`;
-        
+        card.className = `group relative rounded-lg border transition-all cursor-pointer ${isActive ? 'bg-zinc-800/80 border-zinc-600' : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/40'}`;
+        card.dataset.versionId = version.id;
+
+        // Version Tag
+        const versionTag = isPinned
+            ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/25 text-blue-400">v${versionNumber} <svg class="h-2.5 w-2.5 fill-blue-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>`
+            : `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-zinc-700/80 text-zinc-300">v${versionNumber}</span>`;
+
         // Prompt Text
         const promptText = version.prompt || 'Initial version';
 
-        // Metadata
-        const modelUsed = version.model || 'GPT-5 Nano';
+        // Files info — show core files from filesystem if available
+        const fsFiles = project.files || {};
+        const fileKeys = Object.keys(fsFiles);
+        let fileChips = '';
+        if (fileKeys.length > 0) {
+            const shown = fileKeys.slice(0, 3);
+            fileChips = shown.map(f => {
+                const size = fsFiles[f] ? Math.ceil((fsFiles[f].length || 0) / 50) : 0;
+                return `<span class="text-zinc-400 font-mono">${escapeHtml(f.split('/').pop())}${size > 0 ? ` <span class="text-green-400">+${size}</span>` : ''}</span>`;
+            }).join('  ');
+        } else {
+            const defaultFiles = ['index.html', 'style.css', 'script.js'];
+            fileChips = defaultFiles.map(f => `<span class="text-zinc-500 font-mono">${f}</span>`).join('  ');
+        }
+
+        // Model metadata
+        const modelUsed = version.model || selectedModel || 'GPT-5 Nano';
+        const cfg = modelConfig[modelUsed];
+        const modelIcon = cfg ? `<img src="${cfg.icon}" alt="${modelUsed}" class="h-3 w-3 rounded-sm opacity-80">` : '';
+        const modelShort = modelUsed.length > 16 ? modelUsed.slice(0, 16) + '…' : modelUsed;
         const versionDate = new Date(parseInt(version.id.split('_')[1]));
         const timeAgo = formatTimeAgo(versionDate);
 
         card.innerHTML = `
-            <div class="flex flex-col gap-2 cursor-pointer w-full">
-                <div class="flex items-start gap-2">
-                    <div class="shrink-0 mt-0.5 flex items-center gap-1.5">
-                        ${versionTag}
-                        ${isPinned ? '<i data-lucide="pin" class="h-3 w-3 text-blue-400 fill-blue-400"></i>' : ''}
-                    </div>
-                    <div class="text-xs text-zinc-300 leading-snug break-words line-clamp-3 opacity-90 flex-1">
-                        ${escapeHtml(promptText)}
-                    </div>
+            <div class="p-3 pb-2 version-body">
+                <div class="flex items-start gap-2 mb-2">
+                    <div class="shrink-0 mt-0.5">${versionTag}</div>
+                    <div class="text-xs text-zinc-300 leading-snug line-clamp-2 flex-1 min-w-0">${escapeHtml(promptText)}</div>
                 </div>
-                <div class="flex items-center justify-between text-[10px] text-zinc-600 mt-1 pl-1">
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium">${escapeHtml(modelUsed)}</span>
-                        <span>•</span>
-                        <span>${timeAgo}</span>
-                    </div>
+                <div class="text-[10px] text-zinc-600 mb-2 pl-0.5 font-mono leading-relaxed">${fileChips}</div>
+                <div class="flex items-center gap-1.5 text-[10px] text-zinc-500 pl-0.5">
+                    ${modelIcon}
+                    <span class="font-medium text-zinc-400">${escapeHtml(modelShort)}</span>
+                    <span class="text-zinc-700">·</span>
+                    <span>${timeAgo}</span>
                 </div>
             </div>
-            
-            <div class="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all bg-zinc-900/80 rounded pl-1">
-                <button class="pin-btn p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-blue-400 transition-colors" title="${isPinned ? 'Unpin version' : 'Pin this version'}">
-                    <i data-lucide="${isPinned ? 'pin-off' : 'pin'}" class="h-3.5 w-3.5"></i>
+            <div class="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+                <button class="pin-btn p-1.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-blue-400 transition-colors" title="${isPinned ? 'Unpin' : 'Pin version'}">
+                    <i data-lucide="${isPinned ? 'pin-off' : 'pin'}" class="h-3 w-3"></i>
                 </button>
                 <button class="delete-btn p-1.5 rounded hover:bg-red-500/10 hover:text-red-400 text-zinc-600 transition-colors" title="Delete version">
-                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                    <i data-lucide="trash-2" class="h-3 w-3"></i>
                 </button>
             </div>
         `;
 
-        // Click handler for card body (switch version)
-        card.querySelector('.flex').addEventListener('click', () => {
+        card.querySelector('.version-body').addEventListener('click', () => {
             project.currentVersionId = version.id;
             saveProject(project);
             const versionNumberParam = getVersionNumber(project, version.id);
             navigateTo(`/@${discordUsername}/${project.slug}?v=${versionNumberParam}`);
         });
 
-        // Click handler for delete button
         card.querySelector('.delete-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             deleteVersion(project.id, version.id);
         });
 
-        // Click handler for pin button
         card.querySelector('.pin-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             togglePinVersion(project.id, version.id);
@@ -2182,8 +2260,7 @@ async function handleGenerationRequest() {
     showIframeLoadingAnimation();
 
     try {
-        // Get custom API key (Pollinations / BYOP) if present
-        const customApiKey = localStorage.getItem('customApiKey') || localStorage.getItem('pollenApiKey');
+        const customApiKey = localStorage.getItem('customApiKey') || localStorage.getItem('openrouterApiKey');
 
         const data = await apiRequest('/generate', 'POST', {
             projectId: currentProjectId,
@@ -2680,9 +2757,8 @@ function createModelTooltips() {
             tipEl.style.transform = 'translateY(-8px)';
             tipEl.style.pointerEvents = 'none';
 
-            // Build inner content with icon + title + short info + pollen/paid indicator
             const iconHtml = cfg.icon ? `<img src="${cfg.icon}" alt="${modelName}" class="h-5 w-5 rounded-sm flex-shrink-0">` : `<div class="h-5 w-5 rounded-sm bg-zinc-800 flex-shrink-0"></div>`;
-            const pollenBadge = cfg.requiresPollen ? `<div class="text-[11px] text-amber-400 font-semibold mt-0.5">Requires purchased pollen</div>` : `<div class="text-[11px] text-zinc-500 mt-0.5">Free</div>`;
+            const pollenBadge = `<div class="text-[11px] text-zinc-500 mt-0.5">via OpenRouter</div>`;
             const infoText = escapeHtml(cfg.info || 'No additional info.');
             const visionBadge = cfg.supportsVision ? `<div class="text-[11px] text-emerald-400 font-semibold mt-0.5 flex items-center gap-1"><i data-lucide="image" class="h-3 w-3"></i>Vision</div>` : '';
 
@@ -3128,6 +3204,52 @@ settingsLoginBtn.addEventListener('click', () => {
     openAuthModal();
 });
 
+// Nav bar auth buttons
+const navLoginBtn = document.getElementById('nav-login-btn');
+const navCreateBtn = document.getElementById('nav-create-btn');
+const navNewProjectBtn = document.getElementById('nav-new-project-btn');
+
+if (navLoginBtn) {
+    navLoginBtn.addEventListener('click', () => openAuthModal());
+}
+if (navCreateBtn) {
+    navCreateBtn.addEventListener('click', () => {
+        if (isLoggedIn) {
+            openNewProjectModal();
+        } else {
+            openAuthModal(false); // open in sign-up mode
+        }
+    });
+}
+if (navNewProjectBtn) {
+    navNewProjectBtn.addEventListener('click', () => {
+        openNewProjectModal();
+    });
+}
+
+// Tag filter bar interactivity
+document.querySelectorAll('.tag-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+// Nav search: pressing Enter navigates to the URL if it looks like a path
+const navSearchInput = document.getElementById('nav-search-input');
+if (navSearchInput) {
+    navSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const val = navSearchInput.value.trim();
+            if (val.startsWith('@')) {
+                navigateTo(`/${val}`);
+            } else if (val) {
+                navigateTo(`/@${val}`);
+            }
+        }
+    });
+}
+
 saveUsernameBtn?.addEventListener('click', async () => {
     const newUsername = changeUsernameInput.value.trim();
     if (!newUsername || newUsername === discordUsername) return;
@@ -3469,6 +3591,7 @@ function openEditProjectModal(projectId) {
     editProjectDescriptionInput.value = project.description || '';
     
     currentEditProjectVisibility = project.visibility || 'unlisted';
+    // Update visibility label
     const visText = currentEditProjectVisibility === 'public' ? 'Public (Shows on home)' : 'Unlisted (Hidden from home)';
     editProjectVisibilityLabel.textContent = visText;
 
@@ -4048,20 +4171,16 @@ document.querySelectorAll('.ability-option').forEach(option => {
     });
 });
 
-/* --- Pollinations BYOP: parse fragment and connect flow --- */
-// Parse location.hash for an API key fragment like #api_key=sk_abc...
+/* --- OpenRouter key fragment handler (for future OAuth flows) --- */
 function parseFragmentForApiKey() {
     try {
-        const hash = window.location.hash.substring(1); // remove '#'
+        const hash = window.location.hash.substring(1);
         if (!hash) return null;
         const params = new URLSearchParams(hash);
-        const key = params.get('api_key') || params.get('token') || params.get('pollen_api_key');
+        const key = params.get('api_key') || params.get('token') || params.get('openrouter_api_key');
         if (key) {
-            // Store under a clear key name
-            localStorage.setItem('pollenApiKey', key);
-            // Mirror to customApiKey storage used elsewhere for backward compatibility
+            localStorage.setItem('openrouterApiKey', key);
             localStorage.setItem('customApiKey', key);
-            // Remove fragment so it never gets sent again
             history.replaceState(null, '', window.location.pathname + window.location.search);
             return key;
         }
@@ -4071,52 +4190,30 @@ function parseFragmentForApiKey() {
     return null;
 }
 
-function buildPollinationsAuthUrl({ redirect = window.location.origin, permissions = 'profile,balance,usage' } = {}) {
-    const base = 'https://enter.pollinations.ai/authorize';
-    const params = new URLSearchParams({
-        redirect_url: redirect,
-        permissions
-    });
-    return `${base}?${params.toString()}`;
-}
-
-function connectWithPollinations() {
-    const redirect = window.location.origin;
-    const authUrl = buildPollinationsAuthUrl({ redirect });
-    // Open in new tab so the fragment doesn't hit server logs; pollinations will redirect back with #api_key=...
-    window.open(authUrl, '_blank', 'noopener');
-}
-
-// Convenience: clear stored pollen key
-function clearPollenKey() {
-    localStorage.removeItem('pollenApiKey');
+// Clear stored OpenRouter API key
+function clearOpenRouterKey() {
+    localStorage.removeItem('openrouterApiKey');
     localStorage.removeItem('customApiKey');
+    const orInput = document.getElementById('openrouterApiKeyInput');
+    if (orInput) orInput.value = '';
     if (customApiKeyInput) customApiKeyInput.value = '';
-    if (pollinationsApiKeyInput) pollinationsApiKeyInput.value = '';
 }
 
-// Wire up pollinations buttons after DOM is ready (listeners registered later in initialize)
-const pollinationsApiKeyInput = document.getElementById('pollinationsApiKeyInput');
+// Wire up OpenRouter key input after DOM is ready
+const openrouterApiKeyInputEl = document.getElementById('openrouterApiKeyInput');
 
 
 // Initial
 async function initialize() {
-    // Attempt to parse an API key returned in the URL fragment on load
-    const found = parseFragmentForApiKey();
-    if (found && pollinationsApiKeyInput) {
-        pollinationsApiKeyInput.value = found;
-    }
-
     setInitialTheme();
     loadProjectsFromLocalStorage();
 
     // Load user preferences
     selectedModel = localStorage.getItem('selectedModel') || 'GPT-5 Nano';
-    // Ensure the selected model is valid, otherwise fallback to default
     if (!modelConfig[selectedModel]) {
         selectedModel = 'GPT-5 Nano';
     }
-    
+
     try {
         const savedAbilities = localStorage.getItem('selectedAbilities');
         selectedAbilities = savedAbilities ? JSON.parse(savedAbilities) : {};
@@ -4124,43 +4221,37 @@ async function initialize() {
     } catch (e) {
         selectedAbilities = {};
     }
-    
+
     // Check login status
     await checkUserStatus();
 
-    // Prefer pollen BYOP key if present
-    const pollenKey = localStorage.getItem('pollenApiKey') || localStorage.getItem('customApiKey');
-    if (pollenKey) {
-        if (pollinationsApiKeyInput) pollinationsApiKeyInput.value = pollenKey;
-        // Also ensure backwards-compatible storage key
-        localStorage.setItem('customApiKey', pollenKey);
+    // Restore OpenRouter API key if previously saved
+    const savedOrKey = localStorage.getItem('openrouterApiKey') || localStorage.getItem('customApiKey');
+    const orInputEl = document.getElementById('openrouterApiKeyInput');
+    if (savedOrKey) {
+        if (orInputEl) orInputEl.value = savedOrKey;
+        if (customApiKeyInput) customApiKeyInput.value = savedOrKey;
+        localStorage.setItem('customApiKey', savedOrKey);
     }
 
-    // Hook up Pollinations connect/clear buttons (if present)
-    const pollinationsConnectBtn = document.getElementById('pollinationsConnectBtn');
-    const pollinationsClearBtn = document.getElementById('pollinationsClearBtn');
-    if (pollinationsConnectBtn) {
-        pollinationsConnectBtn.addEventListener('click', (e) => {
+    // Wire up OpenRouter clear button
+    const openrouterClearBtn = document.getElementById('openrouterClearBtn');
+    if (openrouterClearBtn) {
+        openrouterClearBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            connectWithPollinations();
+            clearOpenRouterKey();
         });
     }
-    if (pollinationsClearBtn) {
-        pollinationsClearBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            clearPollenKey();
-        });
-    }
-    // Mirror manual input into pollen key storage when user types/pastes
-    if (pollinationsApiKeyInput) {
-        pollinationsApiKeyInput.addEventListener('change', (e) => {
+    // Mirror manual input into storage when user types/pastes
+    if (orInputEl) {
+        orInputEl.addEventListener('change', (e) => {
             const key = e.target.value.trim();
             if (key) {
-                localStorage.setItem('pollenApiKey', key);
+                localStorage.setItem('openrouterApiKey', key);
                 localStorage.setItem('customApiKey', key);
-                customApiKeyInput.value = key;
+                if (customApiKeyInput) customApiKeyInput.value = key;
             } else {
-                clearPollenKey();
+                clearOpenRouterKey();
             }
         });
     }
@@ -4172,13 +4263,15 @@ async function initialize() {
 
     // Router will handle selecting the initial project based on URL
     await router();
-    
-    // The rest of the logic is now handled by the router
+
     // Update model selector UI
     updateModelUI(selectedModel);
-    
+
     // Update ability selector UI
     updateSelectedAbilityUI();
+
+    // Load home feed in background
+    loadHomeFeed();
 
     lucide.createIcons();
 }
